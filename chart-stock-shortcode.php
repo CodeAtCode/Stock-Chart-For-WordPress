@@ -16,10 +16,11 @@ if ( !defined( 'ABSPATH' ) ) {
 function stock_chart( $atts ) {
 	extract(shortcode_atts( array(
 		'width' => 100,
-		'days' => 2,
+		'days' => 2,//useless if gap is not day
 		'gap' => 'week',
 		'layout' => 'light',
 		'symbol' => 'YHOO',
+		'legend' => 'no',
 		'values' => 'close',
 		'title' => '',
 			), $atts ));
@@ -57,63 +58,73 @@ function stock_chart( $atts ) {
 		}
 	}
 	
-	// Trim whitespace and explode array values after comma
+	// Trim whitespace and explode array of wanted values after comma
 	$stockvalues = array_map('trim', explode( ',', $values ));
 
-	$varchart = '<div class="stock-chart-container" style="width:' . $width . '%;">';
-	$varchart .= '<h3 class="stock-chart-title">'.$title.'</h3>';
-	$varchart .= '<canvas id="stock-chart-' . $symbol . '"></canvas>';
-	$varchart .= '<div class="chart-legend">'; // add chart legend
-	$varchart .= '<ul>';
-	if (in_array("min", $stockvalues)) {
-		$varchart .= '<li class="chart-min">Min</li>';
-	}
-	if (in_array("max", $stockvalues)) {
-		$varchart .= '<li class="chart-max">Max</li>';
-	}
-	if (in_array("max", $stockvalues) || in_array("min", $stockvalues)) {
-		$varchart .= '<li class="chart-close">Close</li>';
-	}
-	$varchart .= '</ul>';
-	$varchart .= '</div>';
-	$varchart .= '</div>';
+	//arrays are for reversable purposes
+	$rclose = array();
+	$rmin = array();
+	$rmax = array();
+	$labels = '';
 
-	$close = $min = $max = $labels = '';
-	foreach ( $json_output->query->results->quote as $value ) {
-		$close .= $value->Adj_Close.', ';
-		$min .= $value->Low.', ';
-		$max .= $value->High.', ';
+	foreach ($json_output->query->results->quote as $key => $value) {
+		$rclose[] = $value->Adj_Close;
+		$rmin[] = $value->Low;
+		$rmax[] = $value->High;
 		$labels = '"' . $value->Date . '", ' . $labels;
 	}
 
-	$closed = array_map('trim', explode(', ' , $close));
-	$minimum = array_map('trim', explode(', ' , $min));
-	$maximum = array_map('trim', explode(', ' , $max));
-	$closed = array_reverse($closed);
-	$minimum = array_reverse($minimum);
-	$maximum = array_reverse($maximum);
+	//Reverse arrays in order to display the right sequences of value/date (labels)
+	$rclose = array_reverse($rclose);
+	$rmin = array_reverse($rmin);
+	$rmax = array_reverse($rmax);
 
+	//Push values in a string
 	$close = $min = $max = '';
-	foreach ($closed as $value) {
+	foreach ($rclose as $value) {
 		if (!empty($value)){
 			$close .= '"' . $value . '", ';
 		}
 	}
-	foreach ($minimum as $value) {
+	foreach ($rmin as $value) {
 		if (!empty($value)){
 			$min .= '"' . $value . '", ';
 		}
 	}
-	foreach ($maximum as $value) {
+	foreach ($rmax as $value) {
 		if (!empty($value)){
 			$max .= '"' . $value . '", ';
 		}
 	}
 
+	//Here is where amazing happens
+
+	$varchart = '<div class="stock-chart-container" style="width:' . $width . '%;">';
+	if (!empty($title)) {
+		$varchart .= '<h3 class="stock-chart-title">'.$title.'</h3>';
+	}
+	$varchart .= '<canvas id="stock-chart-' . $symbol . '"></canvas>';
+	if ($legend != 'no') {
+		$varchart .= '<div class="chart-legend">'; // add chart legend
+		$varchart .= '<ul>';
+		if (in_array("min", $stockvalues)) {
+			$varchart .= '<li class="chart-min">Low</li>';
+		}
+		if (in_array("max", $stockvalues)) {
+			$varchart .= '<li class="chart-max">High</li>';
+		}
+		if (in_array("close", $stockvalues)) {
+		$varchart .= '<li class="chart-close">Close</li>';
+		}
+		$varchart .= '</ul>';
+	}
+	$varchart .= '</div>';
+	$varchart .= '</div>';
+
 	$varchart .= '<script type="text/javascript">';
 	$varchart .= 'new Chart(document.getElementById("stock-chart-' . $symbol . '").getContext("2d")).Line({
             labels: [' . $labels . '],
-            datasets: [';
+            datasets: ['; //choose and add data to chart
             if (in_array('min', $stockvalues)) {
             	$varchart .= '{
 	            	fillColor: "rgba(0,36,46,0.3)",
@@ -136,6 +147,7 @@ function stock_chart( $atts ) {
 					data: [' . $max . ']
 				},';
 			}
+			if (in_array('close', $stockvalues)) {
             $varchart .= '{
 		            fillColor: "rgba(0,104,133,0.3)",
 		            strokeColor: "rgba(0,104,133,1)",
@@ -144,11 +156,10 @@ function stock_chart( $atts ) {
 		            pointHighlightFill: "rgba(0,104,133,0.6)",
 		            pointHighlightStroke: "#006885",
 		            data: [' . $close . ']
-            	}
-			]
-		  },
-		  {';
-			  if ($layout=='dark') {
+            	}';
+            }
+			$varchart .= ']},{';
+			  if ($layout==='dark') {
 			  	$varchart .= 'scaleFontColor: "#000", scaleGridLineColor : "rgba(0,0,0,.1)",';
 			  }
 			  else {
@@ -160,8 +171,6 @@ function stock_chart( $atts ) {
 	$varchart .= '</script>';
 	return $varchart;
 }
-
-add_shortcode( 'stock-chart', 'stock_chart' );
 
 function stock_today( $atts ) {
 	extract(shortcode_atts( array(
@@ -185,7 +194,7 @@ function stock_today( $atts ) {
 			// If everything's okay, parse the body and json_decode it
 			$json_output = json_decode( wp_remote_retrieve_body( $response ) );
 
-			// Store the result in a transient, expires after 1 day
+			// Store the result in a transient, expires after 1 hour
 			// Also store it as the last successful using update_option
 			set_transient( $key, $json_output, HOUR_IN_SECONDS );
 			update_option( $key, $json_output );
@@ -195,6 +204,9 @@ function stock_today( $atts ) {
 	$ref = $json_output->query->results->quote;
 	$varstock = '<div class="stock-today-container stock-today-' . $symbol . '" style="width:' . $width . '%; line-height:' . $height . '">';
 	$varstock .= '<h3 class="today-stock-title">';
+
+	//HERE starts rendering a lot of elements according to the language, remove this in multilanguage future release
+	
 	if ($lang == 'eng') {
 		$varstock .= "Stock Today</h3>";
 	}
@@ -203,7 +215,7 @@ function stock_today( $atts ) {
 	}
 	$varstock .= "<span>[" .date("d-m-Y h:i", strtotime("-1 hour")). "]</span>";
 	$varstock .= '<table>';
-	
+
 	if ( !empty( $ref->PreviousClose ) ) {
 		$varstock .= "<tr><td>";
 		if ($lang == 'eng') {
@@ -319,6 +331,8 @@ function stock_today( $atts ) {
 	return $varstock;
 }
 
+//ADD SHORTCODE [stock-chart] [stock-today]
+add_shortcode( 'stock-chart', 'stock_chart' );
 add_shortcode( 'stock-today', 'stock_today' );
 
 //Load the js and css only when exist
@@ -345,6 +359,13 @@ function has_shortcode_stock_chart( $posts ) {
 // perform the check when the_posts() function is called
 add_action( 'the_posts', 'has_shortcode_stock_chart' );
 
+
+/******************************************************
+@Mte90 - Daniele
+DO WE REALLY NEED IT??
+Personally I want to put this only if shortcde is in the page or XXXXX future widget is active
+Discusson on this approach needed!!!!!
+*******************************************************/
 function force_on_homepage() {
     if( is_front_page() )   {
         wp_enqueue_script( 'stock-chart-script', plugin_dir_url( __FILE__ ) . 'js/Chart.min.js', array(), '1.0.0', false );

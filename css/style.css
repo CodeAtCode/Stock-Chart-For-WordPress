@@ -1,0 +1,84 @@
+.stock-chart-container {
+	max-width: 100%;
+	height: auto;
+  float:left;
+}
+.stock-chart-container canvas {
+	height:350px;
+	width:100%;
+  background: transparent;
+  padding:5px;
+}
+
+.chart-legend li {
+  display: inline-block;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 12px;
+}
+
+.chart-legend {
+  display: block;
+  margin: 0 auto;
+  float: none;
+  text-align: center;
+}
+
+li.chart-min {
+  border-left: 20px solid #00242e;
+}
+
+li.chart-max {
+  border-left: 20px solid #00aad9;
+}
+
+li.chart-close {
+  border-left: 20px solid #006885;
+}
+
+.stock-today-container {
+  float:left;
+  text-align: left;
+}
+
+.stock-today-container table tbody tr td {
+  padding-left: 20px;
+  font-size: 14px;
+}
+
+.stock-today-container table tbody tr td:first-child {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.today-stock-title {
+  font-size: 20px !important;
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.8;
+  text-align: left;
+  display: inline;
+}
+
+.stock-today-container span {
+  font-size: 16px;
+  color: #00aad9;
+  padding-left: 10px;
+}
+
+h3.stock-chart-title {
+  font-size: 20px !important;
+  text-align: left;
+  border-bottom: 1px solid white;
+}
+
+@media only screen and (max-width: 960px) {
+  .stock-chart-container, .stock-today-container {
+    width: 100% !important;
+  }
+  .stock-today-container table {
+  margin: 0 auto;
+  text-align: center;
+  width: 100%;
+  }
+}

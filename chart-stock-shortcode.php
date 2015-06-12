@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name:       Stock Chart - from Yahoo Finance APIs
  * Description:       Display stock charts and quotations in a fancy way. Personalize your widget by setting a time interval and colors.
@@ -8,35 +9,33 @@
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  */
- 
 if ( !defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly
-} 
+	exit; // Exit if accessed directly
+}
 
 function stock_chart( $atts ) {
-	extract(shortcode_atts( array(
-		'width' => 100,
-		'days' => 2,//useless if gap is not day
-		'gap' => 'week',
-		'layout' => 'light',
-		'symbol' => 'YHOO',
-		'legend' => 'no',
-		'values' => 'close',
-		'title' => '',
-			), $atts ));
-		// If you need a daily view start counting gap from yesterday
-		if ( $gap === 'day' ) {
-			$interval = '-'.$days.' '.$gap;
-			$initial = date( 'Y-m-d', strtotime( $interval ) );
-			$end = date( 'Y-m-d', strtotime( '-1 ' .$gap ) );
-		}
-		else { // Else start counting from today
-			$interval = '-1 '.$gap;
-			$initial = date( 'Y-m-d', strtotime( $interval ) );
-			$end = date( 'Y-m-d' );
-		}
+	extract( shortcode_atts( array(
+	    'width' => 100,
+	    'days' => 2, //useless if gap is not day
+	    'gap' => 'week',
+	    'layout' => 'light',
+	    'symbol' => 'YHOO',
+	    'legend' => 'no',
+	    'values' => 'close',
+	    'title' => '',
+			), $atts ) );
+	// If you need a daily view start counting gap from yesterday
+	if ( $gap === 'day' ) {
+		$interval = '-' . $days . ' ' . $gap;
+		$initial = date( 'Y-m-d', strtotime( $interval ) );
+		$end = date( 'Y-m-d', strtotime( '-1 ' . $gap ) );
+	} else { // Else start counting from today
+		$interval = '-1 ' . $gap;
+		$initial = date( 'Y-m-d', strtotime( $interval ) );
+		$end = date( 'Y-m-d' );
+	}
 
-		// Set transient key as stock-chart + Symbol + Interval
+	// Set transient key as stock-chart + Symbol + Interval
 	$key = 'stock-chart-' . $symbol . '_' . $initial . '_' . $end . '_transient';
 
 	// Let's see if we have a cached version
@@ -57,9 +56,9 @@ function stock_chart( $atts ) {
 			update_option( $key, $json_output );
 		}
 	}
-	
+
 	// Trim whitespace and explode array of wanted values after comma
-	$stockvalues = array_map('trim', explode( ',', $values ));
+	$stockvalues = array_map( 'trim', explode( ',', $values ) );
 
 	//arrays are for reversable purposes
 	$rclose = array();
@@ -67,7 +66,7 @@ function stock_chart( $atts ) {
 	$rmax = array();
 	$labels = '';
 
-	foreach ($json_output->query->results->quote as $key => $value) {
+	foreach ( $json_output->query->results->quote as $key => $value ) {
 		$rclose[] = $value->Adj_Close;
 		$rmin[] = $value->Low;
 		$rmax[] = $value->High;
@@ -75,58 +74,57 @@ function stock_chart( $atts ) {
 	}
 
 	//Reverse arrays in order to display the right sequences of value/date (labels)
-	$rclose = array_reverse($rclose);
-	$rmin = array_reverse($rmin);
-	$rmax = array_reverse($rmax);
+	$rclose = array_reverse( $rclose );
+	$rmin = array_reverse( $rmin );
+	$rmax = array_reverse( $rmax );
 
 	//Push values in a string
 	$close = $min = $max = '';
-	foreach ($rclose as $value) {
-		if (!empty($value)){
+	foreach ( $rclose as $value ) {
+		if ( !empty( $value ) ) {
 			$close .= '"' . $value . '", ';
 		}
 	}
-	foreach ($rmin as $value) {
-		if (!empty($value)){
+	foreach ( $rmin as $value ) {
+		if ( !empty( $value ) ) {
 			$min .= '"' . $value . '", ';
 		}
 	}
-	foreach ($rmax as $value) {
-		if (!empty($value)){
+	foreach ( $rmax as $value ) {
+		if ( !empty( $value ) ) {
 			$max .= '"' . $value . '", ';
 		}
 	}
 
 	//Here is where amazing happens
 
-	$varchart = '<div class="stock-chart-container" style="width:' . $width . '%;">';
-	if (!empty($title)) {
-		$varchart .= '<h3 class="stock-chart-title">'.$title.'</h3>';
+	$varchart = '<div class="stock-chart-container" style="width:' . $width . '%;">'."\n";
+	if ( !empty( $title ) ) {
+		$varchart .= '<h3 class="stock-chart-title">' . $title . '</h3>'."\n";
 	}
-	$varchart .= '<canvas id="stock-chart-' . $symbol . '"></canvas>';
-	if ($legend != 'no') {
-		$varchart .= '<div class="chart-legend">'; // add chart legend
-		$varchart .= '<ul>';
-		if (in_array("min", $stockvalues)) {
-			$varchart .= '<li class="chart-min">Low</li>';
+	$varchart .= '<canvas id="stock-chart-' . $symbol . '"></canvas>'."\n";
+	if ( $legend !== 'no' ) {
+		$varchart .= '<div class="chart-legend">."\n"'; // add chart legend
+		$varchart .= '<ul>'."\n";
+		if ( in_array( "min", $stockvalues ) ) {
+			$varchart .= '<li class="chart-min">Low</li>."\n"';
 		}
-		if (in_array("max", $stockvalues)) {
-			$varchart .= '<li class="chart-max">High</li>';
+		if ( in_array( "max", $stockvalues ) ) {
+			$varchart .= '<li class="chart-max">High</li>'."\n";
 		}
-		if (in_array("close", $stockvalues)) {
-		$varchart .= '<li class="chart-close">Close</li>';
+		if ( in_array( "close", $stockvalues ) ) {
+			$varchart .= '<li class="chart-close">Close</li>'."\n";
 		}
-		$varchart .= '</ul>';
+		$varchart .= '</ul>'."\n";
 	}
-	$varchart .= '</div>';
-	$varchart .= '</div>';
+	$varchart .= '</div>'."\n";
 
-	$varchart .= '<script type="text/javascript">';
+	$varchart .= '<script type="text/javascript">'."\n";
 	$varchart .= 'new Chart(document.getElementById("stock-chart-' . $symbol . '").getContext("2d")).Line({
             labels: [' . $labels . '],
             datasets: ['; //choose and add data to chart
-            if (in_array('min', $stockvalues)) {
-            	$varchart .= '{
+	if ( in_array( 'min', $stockvalues ) ) {
+		$varchart .= '{
 	            	fillColor: "rgba(0,36,46,0.3)",
 	            	strokeColor: "rgba(0,36,46,1)",
 	            	pointColor: "#00242e",
@@ -135,9 +133,9 @@ function stock_chart( $atts ) {
 	            	pointHighlightStroke: "#00242e",
 	            	data: [' . $min . ']
             	},';
-            }
-            if (in_array('max', $stockvalues)) {
-            	$varchart .= '{ 
+	}
+	if ( in_array( 'max', $stockvalues ) ) {
+		$varchart .= '{ 
 					fillColor: "rgba(0,170,217,0.3)",
 					strokeColor: "rgba(0,170,217,1)",
 					pointColor: "#00aad9",
@@ -146,9 +144,9 @@ function stock_chart( $atts ) {
 					pointHighlightStroke: "#00aad9",
 					data: [' . $max . ']
 				},';
-			}
-			if (in_array('close', $stockvalues)) {
-            $varchart .= '{
+	}
+	if ( in_array( 'close', $stockvalues ) ) {
+		$varchart .= '{
 		            fillColor: "rgba(0,104,133,0.3)",
 		            strokeColor: "rgba(0,104,133,1)",
 		            pointColor: "#006885",
@@ -157,28 +155,27 @@ function stock_chart( $atts ) {
 		            pointHighlightStroke: "#006885",
 		            data: [' . $close . ']
             	}';
-            }
-			$varchart .= ']},{';
-			  if ($layout==='dark') {
-			  	$varchart .= 'scaleFontColor: "#000", scaleGridLineColor : "rgba(0,0,0,.1)",';
-			  }
-			  else {
-			  	$varchart .= 'scaleFontColor: "#FFF", scaleGridLineColor : "rgba(255,255,255,.1)",';
-			  }
+	}
+	$varchart .= ']},{';
+	if ( $layout === 'dark' ) {
+		$varchart .= 'scaleFontColor: "#000", scaleGridLineColor : "rgba(0,0,0,.1)",';
+	} else {
+		$varchart .= 'scaleFontColor: "#FFF", scaleGridLineColor : "rgba(255,255,255,.1)",';
+	}
 	$varchart .= 'responsive: true
 		  	}
-		  	);';
+		  	);'."\n";
 	$varchart .= '</script>';
 	return $varchart;
 }
 
 function stock_today( $atts ) {
-	extract(shortcode_atts( array(
-		'symbol' => 'YHOO',
-		'width' => 100,
-		'height' => 1,
-		'lang' => 'eng',
-			), $atts ));
+	extract( shortcode_atts( array(
+	    'symbol' => 'YHOO',
+	    'width' => 100,
+	    'height' => 1,
+	    'lang' => 'eng',
+			), $atts ) );
 
 	$key = 'stock-today-' . $symbol . '_transient';
 
@@ -200,131 +197,131 @@ function stock_today( $atts ) {
 			update_option( $key, $json_output );
 		}
 	}
-	
+
 	$ref = $json_output->query->results->quote;
 	$varstock = '<div class="stock-today-container stock-today-' . $symbol . '" style="width:' . $width . '%; line-height:' . $height . '">';
 	$varstock .= '<h3 class="today-stock-title">';
 
 	//HERE starts rendering a lot of elements according to the language, remove this in multilanguage future release
-	
-	if ($lang == 'eng') {
+
+	if ( $lang == 'eng' ) {
 		$varstock .= "Stock Today</h3>";
 	}
-	if ($lang == 'ita') {
+	if ( $lang == 'ita' ) {
 		$varstock .= "Il Titolo Oggi</h3>";
 	}
-	$varstock .= "<span>[" .date("d-m-Y h:i", strtotime("-1 hour")). "]</span>";
+	$varstock .= "<span>[" . date( "d-m-Y h:i", strtotime( "-1 hour" ) ) . "]</span>";
 	$varstock .= '<table>';
 
 	if ( !empty( $ref->PreviousClose ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Prev Close Price";
-			}
-		if ($lang == 'ita') {
+		}
+		if ( $lang == 'ita' ) {
 			$varstock .= "Precedente Prezzo Chiusura";
 		}
-		$varstock .= "</td><td>".$ref->PreviousClose." €</td></tr>";
+		$varstock .= "</td><td>" . $ref->PreviousClose . " €</td></tr>";
 	}
 	if ( !empty( $ref->Open ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Open";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Apertura";
 		}
-		$varstock .= "</td><td>".$ref->Open." €</td></tr>";
+		$varstock .= "</td><td>" . $ref->Open . " €</td></tr>";
 	}
 	if ( !empty( $ref->Bid ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Bid";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Prezzo Acquisto";
 		}
-		$varstock .= "</td><td>".$ref->Bid." €</td></tr>";
+		$varstock .= "</td><td>" . $ref->Bid . " €</td></tr>";
 	}
 	if ( !empty( $ref->Ask ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Ask";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Prezzo Vendita";
 		}
-		$varstock .= "</td><td>".$ref->Ask." €</td></tr>";
+		$varstock .= "</td><td>" . $ref->Ask . " €</td></tr>";
 	}
 	if ( !empty( $ref->OneyrTargetPrice ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "1y Target Est";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Previsione a 1 anno";
 		}
-		$varstock .= "</td><td>".$ref->OneyrTargetPrice." €</td></tr>";
+		$varstock .= "</td><td>" . $ref->OneyrTargetPrice . " €</td></tr>";
 	}
 	if ( !empty( $ref->DaysRange ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Day Range";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Variazione Giornaliera";
 		}
-		$varstock .= "</td><td>".$ref->DaysRange." €</td></tr>";
+		$varstock .= "</td><td>" . $ref->DaysRange . " €</td></tr>";
 	}
 	if ( !empty( $ref->YearRange ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Year Range";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Variazione annuale";
 		}
-		$varstock .= "</td><td>".$ref->YearRange." €</td></tr>";
+		$varstock .= "</td><td>" . $ref->YearRange . " €</td></tr>";
 	}
 	if ( !empty( $ref->Volume ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Volume";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Volumi";
 		}
-		$varstock .= "</td><td>".$ref->Volume."</td></tr>";
+		$varstock .= "</td><td>" . $ref->Volume . "</td></tr>";
 	}
 	if ( !empty( $ref->AverageDailyVolume ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Average Daily Volume";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Volumi Medi Giornalieri";
 		}
-		$varstock .= "</td><td>".$ref->AverageDailyVolume."</td></tr>";
+		$varstock .= "</td><td>" . $ref->AverageDailyVolume . "</td></tr>";
 	}
 	if ( !empty( $ref->MarketCapitalization ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Market Capitalization";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Capitalizzazione di Mercato";
 		}
-		$varstock .= "</td><td>".$ref->MarketCapitalization." €</td></tr>";
+		$varstock .= "</td><td>" . $ref->MarketCapitalization . " €</td></tr>";
 	}
 	if ( !empty( $ref->DividendYield ) ) {
 		$varstock .= "<tr><td>";
-		if ($lang == 'eng') {
+		if ( $lang == 'eng' ) {
 			$varstock .= "Dividend Yield";
 		}
-		if ($lang == 'ita') {
+		if ( $lang == 'ita' ) {
 			$varstock .= "Dividendi";
 		}
-		$varstock .= "</td><td>".$ref->DividendYield."%</td></tr>";
+		$varstock .= "</td><td>" . $ref->DividendYield . "%</td></tr>";
 	}
 	$varstock .= '</table>';
 	$varstock .= '</div>';
@@ -360,16 +357,18 @@ function has_shortcode_stock_chart( $posts ) {
 add_action( 'the_posts', 'has_shortcode_stock_chart' );
 
 
-/******************************************************
-@Mte90 - Daniele
-DO WE REALLY NEED IT??
-Personally I want to put this only if shortcde is in the page or XXXXX future widget is active
-Discusson on this approach needed!!!!!
-*******************************************************/
+/* * ****************************************************
+  @Mte90 - Daniele
+  DO WE REALLY NEED IT??
+  Personally I want to put this only if shortcde is in the page or XXXXX future widget is active
+  Discusson on this approach needed!!!!!
+ * ***************************************************** */
+
 function force_on_homepage() {
-    if( is_front_page() )   {
-        wp_enqueue_script( 'stock-chart-script', plugin_dir_url( __FILE__ ) . 'js/Chart.min.js', array(), '1.0.0', false );
-        wp_enqueue_style( 'stock-chart-style', plugin_dir_url( __FILE__ ) . 'css/style.css' );
-    }
+	if ( is_front_page() ) {
+		wp_enqueue_script( 'stock-chart-script', plugin_dir_url( __FILE__ ) . 'js/Chart.min.js', array(), '1.0.0', false );
+		wp_enqueue_style( 'stock-chart-style', plugin_dir_url( __FILE__ ) . 'css/style.css' );
+	}
 }
+
 add_action( 'wp_enqueue_scripts', 'force_on_homepage' );

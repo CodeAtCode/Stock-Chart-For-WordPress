@@ -26,6 +26,7 @@ Put the shortcode you want into a page or a post.
 * width (default: 100) - Numeric value that represents the width percentage eg: `[stock-chart width="50"]`
 * title (default: none) - Title of the chart. eg: `[stock-chart title="Our stocks high"]`
 * legend (default: false) - Display the legend of the chart eg: `[stock-chart legend="true"]`
+* round (default: 2) - Set the round for the decimal eg: `[stock-chart round="3"]`
 
 
 To be completed...

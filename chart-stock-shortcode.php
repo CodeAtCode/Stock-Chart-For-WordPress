@@ -23,6 +23,7 @@ function stock_chart( $atts ) {
 	    'legend' => 'no',
 	    'values' => 'close',
 	    'title' => '',
+	    'round' => '2'
 			), $atts ) );
 	// If you need a daily view start counting gap from yesterday
 	if ( $gap === 'day' ) {
@@ -61,15 +62,13 @@ function stock_chart( $atts ) {
 	$stockvalues = array_map( 'trim', explode( ',', $values ) );
 
 	//arrays are for reversable purposes
-	$rclose = array();
-	$rmin = array();
-	$rmax = array();
+	$rclose = $rmin = $rmax = array();
 	$labels = '';
 
 	foreach ( $json_output->query->results->quote as $key => $value ) {
-		$rclose[] = $value->Adj_Close;
-		$rmin[] = $value->Low;
-		$rmax[] = $value->High;
+		$rclose[] = round($value->Adj_Close, $round);
+		$rmin[] = round($value->Low, $round);
+		$rmax[] = round($value->High, $round);
 		$labels = '"' . $value->Date . '", ' . $labels;
 	}
 

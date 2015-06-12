@@ -203,7 +203,10 @@ function stock_today( $atts ) {
 	$varstock .= '<h3 class="today-stock-title">';
 
 	//HERE starts rendering a lot of elements according to the language, remove this in multilanguage future release
-
+	
+	//For Eugenio
+	//What is this shit?!?!!???
+	//Port on the boilerplate?
 	if ( $lang == 'eng' ) {
 		$varstock .= "Stock Today</h3>";
 	}
@@ -355,20 +358,3 @@ function has_shortcode_stock_chart( $posts ) {
 
 // perform the check when the_posts() function is called
 add_action( 'the_posts', 'has_shortcode_stock_chart' );
-
-
-/* * ****************************************************
-  @Mte90 - Daniele
-  DO WE REALLY NEED IT??
-  Personally I want to put this only if shortcde is in the page or XXXXX future widget is active
-  Discusson on this approach needed!!!!!
- * ***************************************************** */
-
-function force_on_homepage() {
-	if ( is_front_page() ) {
-		wp_enqueue_script( 'stock-chart-script', plugin_dir_url( __FILE__ ) . 'js/Chart.min.js', array(), '1.0.0', false );
-		wp_enqueue_style( 'stock-chart-style', plugin_dir_url( __FILE__ ) . 'css/style.css' );
-	}
-}
-
-add_action( 'wp_enqueue_scripts', 'force_on_homepage' );

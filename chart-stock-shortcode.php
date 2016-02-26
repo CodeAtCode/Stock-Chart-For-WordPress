@@ -69,7 +69,7 @@ function stock_chart( $atts ) {
         $rclose[] = round( $value->Adj_Close, $round );
         $rmin[] = round( $value->Low, $round );
         $rmax[] = round( $value->High, $round );
-        $labels = '"' . $value->Date . '", ' . $labels;
+        $date[] = 'new Date("' . $value->Date . '")';
     }
 
     //Reverse arrays in order to display the right sequences of value/date (labels)
@@ -79,29 +79,26 @@ function stock_chart( $atts ) {
 
     //Push values in a string
     $close = $min = $max = '';
-    foreach ( $rclose as $value ) {
+    foreach ( $rclose as $key => $value ) {
         if ( !empty( $value ) ) {
-            $close .= '"' . $value . '", ';
+            $close .= '{"value":' . $value . ', "date":' . $date[ $key ] . '},' . "\n";
         }
     }
-    foreach ( $rmin as $value ) {
+    foreach ( $rmin as $key => $value ) {
         if ( !empty( $value ) ) {
-            $min .= '"' . $value . '", ';
+            $min .= '{"value":' . $value . ', "date":' . $date[ $key ] . '},' . "\n";
         }
     }
-    foreach ( $rmax as $value ) {
+    foreach ( $rmax as $key => $value ) {
         if ( !empty( $value ) ) {
-            $max .= '"' . $value . '", ';
+            $max .= '{"value":' . $value . ', "date":' . $date[ $key ] . '},' . "\n";
         }
     }
 
     //Here is where amazing happens
 
     $varchart = '<div class="stock-chart-container" style="width:' . $width . '%;">' . "\n";
-    if ( !empty( $title ) ) {
-        $varchart .= '<h3 class="stock-chart-title">' . $title . '</h3>' . "\n";
-    }
-    $varchart .= '<canvas id="stock-chart-' . $symbol . '"></canvas>' . "\n";
+    $varchart .= '<div class="stock-chart-' . str_replace('.','',$symbol) . '"></div>' . "\n";
     if ( $legend !== 'no' ) {
         $varchart .= '<div class="chart-legend">."\n"'; // add chart legend
         $varchart .= '<ul>' . "\n";
@@ -119,52 +116,21 @@ function stock_chart( $atts ) {
     $varchart .= '</div>' . "\n";
 
     $varchart .= '<script type="text/javascript">' . "\n";
-    $varchart .= 'new Chart(document.getElementById("stock-chart-' . $symbol . '").getContext("2d")).Line({
-            labels: [' . $labels . '],
-            datasets: ['; //choose and add data to chart
-    if ( in_array( 'min', $stockvalues ) ) {
-        $varchart .= '{
-	            	fillColor: "rgba(0,36,46,0.3)",
-	            	strokeColor: "rgba(0,36,46,1)",
-	            	pointColor: "#00242e",
-	            	pointStrokeColor: "#fff",
-	            	pointHighlightFill: "rgba(0,36,46,0.6)",
-	            	pointHighlightStroke: "#00242e",
-	            	data: [' . $min . ']
-            	},';
-    }
-    if ( in_array( 'max', $stockvalues ) ) {
-        $varchart .= '{ 
-					fillColor: "rgba(0,170,217,0.3)",
-					strokeColor: "rgba(0,170,217,1)",
-					pointColor: "#00aad9",
-					pointStrokeColor: "#fff",
-					pointHighlightFill: "rgba(0,170,217,0.6)",
-					pointHighlightStroke: "#00aad9",
-					data: [' . $max . ']
-				},';
-    }
-    if ( in_array( 'close', $stockvalues ) ) {
-        $varchart .= '{
-		            fillColor: "rgba(0,104,133,0.3)",
-		            strokeColor: "rgba(0,104,133,1)",
-		            pointColor: "#006885",
-		            pointStrokeColor: "#fff",
-		            pointHighlightFill: "rgba(0,104,133,0.6)",
-		            pointHighlightStroke: "#006885",
-		            data: [' . $close . ']
-            	}';
-    }
-    $varchart .= ']},{';
-    if ( $layout === 'dark' ) {
-        $varchart .= 'scaleFontColor: "#000", scaleGridLineColor : "rgba(0,0,0,.1)",';
-    } else {
-        $varchart .= 'scaleFontColor: "#FFF", scaleGridLineColor : "rgba(255,255,255,.1)",';
-    }
-    $varchart .= 'responsive: true
-		  	}
-		  	);' . "\n";
-    $varchart .= '</script>';
+    $varchart .= 'document.addEventListener("DOMContentLoaded", function(event) {'
+            . 'new MG.data_graphic({'
+            . 'target: ".stock-chart-' . str_replace('.','',$symbol) . '",
+    x_accessor: "date",
+    y_accessor: "value",
+    title: "' . $title . '",
+    width: 600,
+    height: 250,
+    legend: ["min","close","max"],
+     legend_target: ".chart-legend",
+    data: [' . "\n";
+    $varchart .= '[' . $min . '],' . '[' . $close . '],' . '[' . $max . ']';
+    $varchart .= ']' . "\n"
+            . '});' . "\n";
+    $varchart .= '})</script>';
     return $varchart;
 }
 
@@ -344,7 +310,8 @@ function has_shortcode_stock_chart( $posts ) {
         // check the post content for the short code
         if ( has_shortcode( $post->post_content, 'stock-chart' ) ) {
             // we have found a post with the short code
-            wp_enqueue_script( 'stock-chart-script', plugin_dir_url( __FILE__ ) . 'js/Chart.min.js', array(), '1.0.0', false );
+            wp_enqueue_script( 'stock-chart-d3', 'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.0/d3.min.js', array('jquery'), '1.0.0', false );
+            wp_enqueue_script( 'stock-chart-script', plugin_dir_url( __FILE__ ) . 'js/metricsgraphics.min.js', array( 'stock-chart-d3' ), '1.0.0', false );
             wp_enqueue_style( 'stock-chart-style', plugin_dir_url( __FILE__ ) . 'css/style.css' );
             // stop the search
             break;

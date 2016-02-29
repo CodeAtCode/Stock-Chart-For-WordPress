@@ -98,36 +98,46 @@ function stock_chart( $atts ) {
     //Here is where amazing happens
 
     $varchart = '<div class="stock-chart-container" style="width:' . $width . '%;">' . "\n";
-    $varchart .= '<div class="stock-chart-' . str_replace('.','',$symbol) . '"></div>' . "\n";
+    $varchart .= '<div class="stock-chart-' . str_replace( '.', '', $symbol ) . '"></div>' . "\n";
     if ( $legend !== 'no' ) {
-        $varchart .= '<div class="chart-legend">."\n"'; // add chart legend
-        $varchart .= '<ul>' . "\n";
-        if ( in_array( "min", $stockvalues ) ) {
-            $varchart .= '<li class="chart-min">Low</li>."\n"';
-        }
-        if ( in_array( "max", $stockvalues ) ) {
-            $varchart .= '<li class="chart-max">High</li>' . "\n";
-        }
-        if ( in_array( "close", $stockvalues ) ) {
-            $varchart .= '<li class="chart-close">Close</li>' . "\n";
-        }
-        $varchart .= '</ul>' . "\n";
+        $varchart .= '<div class="chart-legend">."\n"';
+        $varchart .= '</div>' . "\n";
     }
     $varchart .= '</div>' . "\n";
 
     $varchart .= '<script type="text/javascript">' . "\n";
     $varchart .= 'document.addEventListener("DOMContentLoaded", function(event) {'
             . 'new MG.data_graphic({'
-            . 'target: ".stock-chart-' . str_replace('.','',$symbol) . '",
+            . 'target: ".stock-chart-' . str_replace( '.', '', $symbol ) . '",
     x_accessor: "date",
     y_accessor: "value",
     title: "' . $title . '",
     width: 600,
-    height: 250,
-    legend: ["min","close","max"],
-     legend_target: ".chart-legend",
-    data: [' . "\n";
-    $varchart .= '[' . $min . '],' . '[' . $close . '],' . '[' . $max . ']';
+    height: 250,';
+    if ( $legend !== 'no' ) {
+        $legend_label = '';
+        if ( in_array( "min", $stockvalues ) ) {
+            $legend_label .= '"min",';
+        }
+        if ( in_array( "max", $stockvalues ) ) {
+            $legend_label .= '"max",';
+        }
+        if ( in_array( "close", $stockvalues ) ) {
+            $legend_label .= '"close"';
+        }
+        $varchart .= 'legend: [' . $legend_label . '],
+    legend_target: ".chart-legend",';
+    }
+    $varchart .= 'data: [ ' . "\n";
+    if ( in_array( "min", $stockvalues ) ) {
+        $varchart .= '[' . $min . '],';
+    }
+    if ( in_array( "max", $stockvalues ) ) {
+        $varchart .= '[' . $close . '],';
+    }
+    if ( in_array( "close", $stockvalues ) ) {
+        $varchart .= '[' . $max . ']';
+    }
     $varchart .= ']' . "\n"
             . '});' . "\n";
     $varchart .= '})</script>';
@@ -310,7 +320,7 @@ function has_shortcode_stock_chart( $posts ) {
         // check the post content for the short code
         if ( has_shortcode( $post->post_content, 'stock-chart' ) ) {
             // we have found a post with the short code
-            wp_enqueue_script( 'stock-chart-d3', 'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.0/d3.min.js', array('jquery'), '1.0.0', false );
+            wp_enqueue_script( 'stock-chart-d3', 'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.0/d3.min.js', array( 'jquery' ), '1.0.0', false );
             wp_enqueue_script( 'stock-chart-script', plugin_dir_url( __FILE__ ) . 'js/metricsgraphics.min.js', array( 'stock-chart-d3' ), '1.0.0', false );
             wp_enqueue_style( 'stock-chart-style', plugin_dir_url( __FILE__ ) . 'css/style.css' );
             // stop the search

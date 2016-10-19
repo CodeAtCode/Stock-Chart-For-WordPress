@@ -112,6 +112,9 @@ function stock_chart( $atts ) {
     x_accessor: "date",
     y_accessor: "value",
     title: "' . $title . '",
+    missing_is_hidden: true,
+    aggregate_rollover: true,
+    animate_on_load: true,
     width: 600,
     height: 250,';
     if ( $legend !== 'no' ) {

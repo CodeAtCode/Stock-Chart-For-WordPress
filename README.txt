@@ -1,8 +1,8 @@
-=== Stock Charts for WordPress - Yahoo Finance ===
-Contributors: codeat 
+=== Stock Charts for WordPress ===
+Contributors: Mte90, iGenius, codeat 
 Tags: stock, charts, finance
 Requires at least: 3.4
-Tested up to: 4.2.2
+Tested up to: 4.7.0
 Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,15 +18,19 @@ Put the shortcode you want into a page or a post.
 
 **Parameters of the chart shortcode:**
 
-* symbol (default: YHOO) - The stock complete Symbol eg: `[stock-chart symbol="LVEN.MI"]`
+* symbol (default: YHOO) - The stock complete Symbol eg: `[stock-chart symbol="YHOO"]`
 * values (default: close) - max, min, close - Value to display on chart, more than one, comma separated, are allowed. eg: `[stock-chart values="close, max"]`
 * gap (default: week) - week, month, year, day (required for the next parameter) - Determines time period shown on the chart eg: `[stock-chart gap="day"]`
 * days (default: 2) - Numeric value that works combined with gap="day" in order to set the daily gap on the chart eg: `[stock-chart gap="day" days="87"]`
-* layout (default: light) Determines the contrast of typography, light for white and dark for black eg: `[stock-chart layout="dark"]`
 * width (default: 100) - Numeric value that represents the width percentage eg: `[stock-chart width="50"]`
 * title (default: none) - Title of the chart. eg: `[stock-chart title="Our stocks high"]`
 * legend (default: false) - Display the legend of the chart eg: `[stock-chart legend="true"]`
 * round (default: 2) - Set the round for the decimal eg: `[stock-chart round="3"]`
+
+**Parameters of the today shortcode:**
+
+* symbol (default: YHOO) - The stock complete Symbol eg: `[stock-chart symbol="YHOO"]`
+* width (default: 100) - Numeric value that represents the width percentage eg: `[stock-chart width="50"]`
 
 
 To be completed...
@@ -46,6 +50,6 @@ To be completed...
 
 == Changelog ==
 
+= 1.0.0 =
 
-
-== Upgrade notice ==
+* First public release

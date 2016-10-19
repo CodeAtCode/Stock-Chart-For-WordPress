@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Plugin Name:       Stock Chart - from Yahoo Finance APIs
- * Description:       Display stock charts and quotations in a fancy way. Personalize your widget by setting a time interval and colors.
+ * Plugin Name:       Stock Charts
+ * Description:       Display stock charts and quotations in a fancy way. 
  * Version:           1.0.0
  * Author:            Codeat
  * Author URI:        http://codeat.it
@@ -18,7 +18,6 @@ function stock_chart( $atts ) {
         'width' => 100,
         'days' => 2, //useless if gap is not day
         'gap' => 'week',
-        'layout' => 'light',
         'symbol' => 'YHOO',
         'legend' => 'no',
         'values' => 'close',
@@ -28,13 +27,12 @@ function stock_chart( $atts ) {
     // If you need a daily view start counting gap from yesterday
     if ( $gap === 'day' ) {
         $interval = '-' . $days . ' ' . $gap;
-        $initial = date( 'Y-m-d', strtotime( $interval ) );
         $end = date( 'Y-m-d', strtotime( '-1 ' . $gap ) );
     } else { // Else start counting from today
         $interval = '-1 ' . $gap;
-        $initial = date( 'Y-m-d', strtotime( $interval ) );
         $end = date( 'Y-m-d' );
     }
+    $initial = date( 'Y-m-d', strtotime( $interval ) );
 
     // Set transient key as stock-chart + Symbol + Interval
     $key = 'stock-chart-' . $symbol . '_' . $initial . '_' . $end . '_transient';
@@ -63,7 +61,6 @@ function stock_chart( $atts ) {
 
     //arrays are for reversable purposes
     $rclose = $rmin = $rmax = array();
-    $labels = '';
 
     foreach ( $json_output->query->results->quote as $key => $value ) {
         $rclose[] = round( $value->Adj_Close, $round );
@@ -151,8 +148,6 @@ function stock_today( $atts ) {
     extract( shortcode_atts( array(
         'symbol' => 'YHOO',
         'width' => 100,
-        'height' => 1,
-        'lang' => 'eng',
                     ), $atts ) );
 
     $key = 'stock-today-' . $symbol . '_transient';
@@ -177,130 +172,54 @@ function stock_today( $atts ) {
     }
 
     $ref = $json_output->query->results->quote;
-    $varstock = '<div class="stock-today-container stock-today-' . $symbol . '" style="width:' . $width . '%; line-height:' . $height . '">';
-    $varstock .= '<h3 class="today-stock-title">';
+    $varstock = '<div class="stock-today-container stock-today-' . $symbol . '" style="width:' . $width . '%; line-height:1">';
+    $varstock .= '<h3 class="today-stock-title">' . __('Stock Today', 'stock-charts') . '</h3>';
 
-    //HERE starts rendering a lot of elements according to the language, remove this in multilanguage future release
-    //For Eugenio
-    //What is this shit?!?!!???
-    //Port on the boilerplate?
-    if ( $lang == 'eng' ) {
-        $varstock .= "Stock Today</h3>";
-    }
-    if ( $lang == 'ita' ) {
-        $varstock .= "Il Titolo Oggi</h3>";
-    }
     $varstock .= "<span>[" . date( "d-m-Y h:i", strtotime( "-1 hour" ) ) . "]</span>";
     $varstock .= '<table>';
 
     if ( !empty( $ref->PreviousClose ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Prev Close Price";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Precedente Prezzo Chiusura";
-        }
+        $varstock .= "<tr><td>" . __('Prev Close Price', 'stock-charts');
         $varstock .= "</td><td>" . $ref->PreviousClose . " €</td></tr>";
     }
     if ( !empty( $ref->Open ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Open";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Apertura";
-        }
+        $varstock .= "<tr><td>" . __('Open', 'stock-charts');
         $varstock .= "</td><td>" . $ref->Open . " €</td></tr>";
     }
     if ( !empty( $ref->Bid ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Bid";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Prezzo Acquisto";
-        }
+        $varstock .= "<tr><td>" . __('Bid', 'stock-charts');
         $varstock .= "</td><td>" . $ref->Bid . " €</td></tr>";
     }
     if ( !empty( $ref->Ask ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Ask";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Prezzo Vendita";
-        }
+        $varstock .= "<tr><td>" . __('Ask', 'stock-charts');
         $varstock .= "</td><td>" . $ref->Ask . " €</td></tr>";
     }
     if ( !empty( $ref->OneyrTargetPrice ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "1y Target Est";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Previsione a 1 anno";
-        }
+        $varstock .= "<tr><td>" . __('1y Target Est', 'stock-charts');
         $varstock .= "</td><td>" . $ref->OneyrTargetPrice . " €</td></tr>";
     }
     if ( !empty( $ref->DaysRange ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Day Range";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Variazione Giornaliera";
-        }
+        $varstock .= "<tr><td>" . __('Day Range', 'stock-charts');
         $varstock .= "</td><td>" . $ref->DaysRange . " €</td></tr>";
     }
     if ( !empty( $ref->YearRange ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Year Range";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Variazione annuale";
-        }
+        $varstock .= "<tr><td>" . __('Year Range', 'stock-charts');
         $varstock .= "</td><td>" . $ref->YearRange . " €</td></tr>";
     }
     if ( !empty( $ref->Volume ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Volume";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Volumi";
-        }
+        $varstock .= "<tr><td>" . __('Volume', 'stock-charts');
         $varstock .= "</td><td>" . $ref->Volume . "</td></tr>";
     }
     if ( !empty( $ref->AverageDailyVolume ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Average Daily Volume";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Volumi Medi Giornalieri";
-        }
+        $varstock .= "<tr><td>" . __('Average Daily Volume', 'stock-charts');
         $varstock .= "</td><td>" . $ref->AverageDailyVolume . "</td></tr>";
     }
     if ( !empty( $ref->MarketCapitalization ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Market Capitalization";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Capitalizzazione di Mercato";
-        }
+        $varstock .= "<tr><td>" . __('Market Capitalization', 'stock-charts');
         $varstock .= "</td><td>" . $ref->MarketCapitalization . " €</td></tr>";
     }
     if ( !empty( $ref->DividendYield ) ) {
-        $varstock .= "<tr><td>";
-        if ( $lang == 'eng' ) {
-            $varstock .= "Dividend Yield";
-        }
-        if ( $lang == 'ita' ) {
-            $varstock .= "Dividendi";
-        }
+        $varstock .= "<tr><td>" . __('Dividend Yield', 'stock-charts');
         $varstock .= "</td><td>" . $ref->DividendYield . "%</td></tr>";
     }
     $varstock .= '</table>';
